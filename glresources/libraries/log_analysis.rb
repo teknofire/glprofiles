@@ -3,7 +3,7 @@ class LogAnalysis < Inspec.resource(1)
   desc 'Parse log files to find issues'
 
   attr_accessor :logfile, :search, :messages
-  def initialize(log, expr, options = {})
+  def initialize(log, expr = nil, **options)
     @options = options || {}
 
     # setting this default fairly high, most logs are limited to 10000 lines
@@ -12,24 +12,39 @@ class LogAnalysis < Inspec.resource(1)
 
     @search = expr
     @logfile = log
-    @messages = read_content
+  end
+
+  def messages
+    @messages ||= read_content
+  end
+
+  def find(expr)
+    # reset messages if new search
+    @messages = nil
+    @search = expr
+
+    messages
+    generate_summary
+
+    # make sure we generate a summary for this search
+    OpenStruct.new( last_entry: last_entry, hits: hits, empty?: empty? )
   end
 
   def hits
-    @messages.count
+    messages.count
   end
   alias_method :count, :hits
 
   def first
-    @messages.first
+    messages.first
   end
 
   def last
-    @messages.last
+    messages.last
   end
 
   def empty?
-    @messages.empty?
+    messages.empty?
   end
 
   # this is for use in the matchers so we can get a better UX with the latest
@@ -39,17 +54,34 @@ class LogAnalysis < Inspec.resource(1)
   end
 
   def content
-    @messages
+    messages
   end
 
-  def summary
-    return '' if hits.zero?
+  def generate_summary
+    @summary ||= []
 
-    <<~EOS
+    return if hits.zero?
+
+    @generated_summary = true
+    @summary.push <<~EOS
       Found #{hits} messages about '#{search}'
       File: #{logfile}
       Last entry: #{last_entry[0..2000]}
     EOS
+
+    @summary
+  end
+
+  def summary
+    @generated_summary ? @summary : generate_summary
+  end
+
+  def summary!
+    summary
+  ensure
+    # reset after showing summary
+    @generated_summary = false
+    @summary = nil
   end
 
   def exists?

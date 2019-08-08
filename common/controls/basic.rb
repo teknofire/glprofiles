@@ -92,8 +92,8 @@ control 'gatherlogs.common.dmesg-nf_conntrack-table-full-error' do
   end
 end
 
-xfs_errors = log_analysis('dmesg.txt', 'XFS .* error .* returned', case_sensitive: true)
-xfs_shutdown = log_analysis('dmesg.txt', 'xfs_do_force_shutdown')
+dmesg_cs = log_analysis('dmesg.txt', case_sensitive: true)
+dmesg = log_analysis('dmesg.txt')
 
 control 'gatherlogs.common.xfs_disk_error' do
   title 'Check to see if XFS is reporting any disk errors'
@@ -103,20 +103,20 @@ encountered a runtime error and has shut down.  Check the rest of the dmesg or
 kernel logs to see what might have lead to this event.
   "
 
-  tag summary: [xfs_errors.summary, xfs_shutdown.summary]
+  describe dmesg.find('xfs_do_force_shutdown') do
+    its("last_entry") { should be_empty }
+  end
 
-  describe xfs_errors do
+  describe dmesg.find('XFS .* error .* returned') do
     its('last_entry') { should be_empty }
   end
 
-  describe xfs_shutdown do
-    its('last_entry') { should be_empty }
-  end
+  tag summary: dmesg.summary!
 end
 
-common_logs.ss_ontap do |ss_ontap|
-  port_exhaustion = log_analysis(ss_ontap, 'TIME-WAIT|ESTAB')
-  control "gatherlogs.common.port_exhaustion.#{ss_ontap}" do
+common_logs.ss_ontap do |logfile|
+  ss_ontap = log_analysis(logfile)
+  control "gatherlogs.common.port_exhaustion.#{logfile}" do
     title 'Check to see if all the available ports have been used'
     desc "
   There appears to be a large number of open ports on the system.  This
@@ -131,8 +131,8 @@ common_logs.ss_ontap do |ss_ontap|
     "
 
     tag verbose: true
-    describe port_exhaustion do
-      its('count') { should be < 10000 }
+    describe ss_ontap.find('TIME-WAIT|ESTAB') do
+      its('hits') { should be < 10000 }
     end
   end
 end
