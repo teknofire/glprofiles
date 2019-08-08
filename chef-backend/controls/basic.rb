@@ -1,7 +1,5 @@
 title 'Basic checks for the chef-server configuration'
 
-include_controls 'common'
-
 chef_backend = installed_packages('chef-backend')
 
 control '000.gatherlogs.chef-backend.package' do

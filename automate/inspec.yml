@@ -8,9 +8,6 @@ summary: InSpec profile for automate generated gather-logs
 version: 0.3.6
 
 depends:
-  - name: common
-    git: https://github.com/teknofire/glprofiles
-    relative_path: common
   - name: glresources
     git: https://github.com/teknofire/glprofiles
     relative_path: glresources

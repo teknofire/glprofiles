@@ -9,5 +9,9 @@ version: 0.3.5
 
 depends:
   - name: glresources
+    <% unless ENV['GL_DEV'] %>
     git: https://github.com/teknofire/glprofiles
+    <% else %>
+    path: ../glresources
+    <% end %>
     relative_path: glresources

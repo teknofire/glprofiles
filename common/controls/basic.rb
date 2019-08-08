@@ -83,13 +83,12 @@ control 'gatherlogs.common.dmesg-nf_conntrack-table-full-error' do
   To update the value: `sysctl -w net.netfilter.nf_conntrack_max=131072`
   "
 
-  tag summary: dmesg_contrack.summary
-
   only_if { dmesg_contrack.log_exists? }
 
   describe dmesg_contrack do
     its('last_entry') { should be_empty }
   end
+  tag summary: dmesg_contrack.summary
 end
 
 dmesg_cs = log_analysis('dmesg.txt', case_sensitive: true)
@@ -103,15 +102,15 @@ encountered a runtime error and has shut down.  Check the rest of the dmesg or
 kernel logs to see what might have lead to this event.
   "
 
+  describe dmesg_cs.find('XFS .* error .* returned') do
+    its('last_entry') { should be_empty }
+  end
+
   describe dmesg.find('xfs_do_force_shutdown') do
     its("last_entry") { should be_empty }
   end
 
-  describe dmesg.find('XFS .* error .* returned') do
-    its('last_entry') { should be_empty }
-  end
-
-  tag summary: dmesg.summary!
+  tag summary: [dmesg_cs.summary!, dmesg.summary!].flatten
 end
 
 common_logs.ss_ontap do |logfile|
@@ -132,7 +131,7 @@ common_logs.ss_ontap do |logfile|
 
     tag verbose: true
     describe ss_ontap.find('TIME-WAIT|ESTAB') do
-      its('hits') { should be < 10000 }
+      its('count') { should be < 10000 }
     end
   end
 end

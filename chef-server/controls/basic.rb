@@ -1,7 +1,5 @@
 title 'Basic checks for the chef-server configuration'
 
-include_controls 'common'
-
 chef_server = installed_packages('chef-server-core')
 
 control '000.gatherlogs.chef-server.package' do

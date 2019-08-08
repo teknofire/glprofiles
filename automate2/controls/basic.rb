@@ -1,7 +1,5 @@
 title 'Basic checks for the automate2 configuration'
 
-include_controls 'common'
-
 automate = installed_packages('automate2')
 
 control '000.gatherlogs.automate2.package' do

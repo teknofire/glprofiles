@@ -27,7 +27,7 @@ class LogAnalysis < Inspec.resource(1)
     generate_summary
 
     # make sure we generate a summary for this search
-    OpenStruct.new( last_entry: last_entry, hits: hits, empty?: empty? )
+    GLResult.new(logfile, search, last_entry: last_entry, hits: hits, empty?: empty? )
   end
 
   def hits
@@ -118,5 +118,36 @@ class LogAnalysis < Inspec.resource(1)
     end
 
     command.stdout.split("\n")
+  end
+end
+
+class GLResult
+  attr_reader :logfile, :search
+
+  def initialize(logfile, search, data = {})
+    @logfile = logfile
+    @search = search
+    @data = data
+  end
+
+  def last_entry
+    fetch :last_entry
+  end
+
+  def hits
+    fetch :hits
+  end
+  alias_method :count, :hits
+
+  def empty?
+    fetch :empty?
+  end
+
+  def to_s
+    "grep '#{search}' '#{logfile}'"
+  end
+
+  def fetch(item)
+    @data[item.to_sym]
   end
 end
