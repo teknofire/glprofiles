@@ -9,5 +9,5 @@ version: 0.3.5
 
 depends:
   - name: glresources
-    git: https://github.com/teknfire/glprofiles
+    git: https://github.com/teknofire/glprofiles
     relative_path: glresources

@@ -9,8 +9,8 @@ version: 0.3.3
 
 depends:
   - name: common
-    git: https://github.com/teknfire/glprofiles
+    git: https://github.com/teknofire/glprofiles
     relative_path: common
   - name: glresources
-    git: https://github.com/teknfire/glprofiles
+    git: https://github.com/teknofire/glprofiles
     relative_path: glresources
