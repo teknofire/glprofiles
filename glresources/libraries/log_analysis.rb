@@ -6,12 +6,14 @@ class LogAnalysis < Inspec.resource(1)
   def initialize(log, expr = nil, **options)
     @options = options || {}
 
-    # setting this default fairly high, most logs are limited to 10000 lines
-    # except for Automate v2 which includes the entire journalctl log output.
-    @options[:log_limit] ||= 250000
+    # max number of bytes to search through in the logs
+    # default: 500mb
+    @options[:log_limit] ||= 1024 * 1024 * 500
 
+    @log_contents_filename = nil
     @search = expr
     @logfile = log
+    @summary ||= []
   end
 
   def messages
@@ -24,7 +26,7 @@ class LogAnalysis < Inspec.resource(1)
     @search = expr
 
     messages
-    generate_summary
+    generate_summary(true)
 
     # make sure we generate a summary for this search
     GLResult.new(logfile, search, last_entry: last_entry, hits: hits, empty?: empty? )
@@ -57,23 +59,22 @@ class LogAnalysis < Inspec.resource(1)
     messages
   end
 
-  def generate_summary
-    @summary ||= []
+  def generate_summary(force = false)
+    return @summary if hits.zero?
+    return @summary if !force && @generated_summary
 
-    return if hits.zero?
-
-    @generated_summary = true
     @summary.push <<~EOS
       Found #{hits} messages about '#{search}'
       File: #{logfile}
       Last entry: #{last_entry[0..2000]}
     EOS
+    @generated_summary = true
 
     @summary
   end
 
   def summary
-    @generated_summary ? @summary : generate_summary
+    generate_summary
   end
 
   def summary!
@@ -81,7 +82,7 @@ class LogAnalysis < Inspec.resource(1)
   ensure
     # reset after showing summary
     @generated_summary = false
-    @summary = nil
+    @summary = []
   end
 
   def exists?
@@ -100,25 +101,47 @@ class LogAnalysis < Inspec.resource(1)
 
   def read_content
     cmd = []
-
-    return [] unless File.exist?(logfile)
+    return [] unless File.exist?(log_filename)
 
     flags = ''
     flags += '-i ' if @options[:case_sensitive] != true
     # osx grep doesn't support -P correctly
     flags += inspec.os.family == 'darwin' ? '-E' : '-P'
 
-    cmd << "tail -n#{@options[:log_limit]} #{logfile}"
-    cmd << "grep -i '#{@options[:a2service]}'" if @options[:a2service]
-    cmd << "grep #{flags} '#{search}'"
+    cmd << "grep #{flags} '#{search}' #{log_filename}"
 
-    command = inspec.command(cmd.join(' | '))
+    exec_command(cmd.join(' | ')).stdout.split("\n")
+  end
+
+  def log_filename
+    @log_contents_filename ||= extract_service_logs
+  end
+
+  def extract_service_logs
+    return logfile unless File.exist?(logfile)
+    return logfile if !@options[:a2service] && File.size(logfile) <= @options[:log_limit]
+    service = @options[:a2service]
+
+    @tempfile = Tempfile.new(['gl', logfile, service].compact.join('-'))
+
+    cmd = []
+    cmd << "cat #{logfile}"
+    cmd << "fgrep -i '#{@options[:a2service]}'" if @options[:a2service]
+    cmd << "tail -c#{@options[:log_limit]}"
+
+    exec_command(cmd.join(' | ') + " > #{@tempfile.path}")
+
+    @tempfile.path
+  end
+
+  def exec_command(cmd)
+    command = inspec.command(cmd)
 
     if command.exit_status > 1
-      raise "#{cmd.join(' | ')} exited #{command.exit_status}\nERROR MSG: #{command.stderr}"
+      raise "#{cmd} exited #{command.exit_status}\nERROR MSG: #{command.stderr}"
     end
 
-    command.stdout.split("\n")
+    command
   end
 end
 

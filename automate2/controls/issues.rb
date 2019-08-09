@@ -1,6 +1,7 @@
-# level=error msg="Phase failed" error="hab-sup upgrade pending" phase="supervisor upgrade"
+lb_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'automate-load-balancer.default')
+ds_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'deployment-service.default')
 
-upgrade_failed = log_analysis('journalctl_chef-automate.txt', 'level=error msg="Phase failed" error="hab-sup upgrade pending" phase="supervisor upgrade"', a2service: 'service.default')
+# level=error msg="Phase failed" error="hab-sup upgrade pending" phase="supervisor upgrade"
 control 'gatherlogs.automate2.upgrade_failed' do
   impact 'critical'
   title 'Check to see if Automate is reporting a failure during the hab sup upgrade process'
@@ -9,14 +10,13 @@ It appears that there was a failure during the upgrade process for Automate, ple
 check the logs and contact support to see about getting this fixed."
 
   tag kb: 'https://automate.chef.io/release-notes/20180706210448/#hanging-stuck-upgrades'
-  tag summary: upgrade_failed.summary
 
-  describe upgrade_failed do
+  describe ds_logs.find('level=error msg="Phase failed" error="hab-sup upgrade pending" phase="supervisor upgrade"') do
     its('last_entry') { should be_empty }
   end
+  tag summary: ds_logs.summary!
 end
 
-ldap_group_too_large = log_analysis('journalctl_chef-automate.txt', 'upstream sent too big header while reading response header from upstream.*dex/auth/ldap', a2service: 'automate-load-balancer.default')
 control 'gatherlogs.automate2.auth_upstream_header_too_big' do
   impact 'medium'
   title 'Check to see if Automate is reporting a failure getting data from an upstream LDAP source'
@@ -28,73 +28,13 @@ To resolve this you will need to add a `group_query_filter` to your Automate con
 filter which groups Automate should use
   "
   tag kb: 'https://automate.chef.io/docs/ldap/#other-common-issues'
-  tag summary: ldap_group_too_large.summary
 
-  describe ldap_group_too_large do
+  describe lb_logs.find('upstream sent too big header while reading response header from upstream.*dex/auth/ldap') do
     its('last_entry') { should be_empty }
   end
+  tag summary: lb_logs.summary!
 end
 
-es_gc = log_analysis('journalctl_chef-automate.txt', '\[o.e.m.j.JvmGcMonitorService\] .* \[gc\]', a2service: 'automate-elasticsearch.default')
-control 'gatherlogs.automate2.elasticsearch-high-gc-counts' do
-  impact 'high'
-  title 'Check to see if the ElasticSearch is reporting large number of GC events'
-  desc "
-The ElasticSearch service is reporting a large number of GC events, this is usually
-an indication that the heap size needs to be increased.
-  "
-
-  tag kb: 'https://automate.chef.io/docs/configuration/#setting-elasticsearch-heap'
-  tag summary: es_gc.summary
-
-  describe es_gc do
-    its('hits') { should cmp <= 10 }
-  end
-end
-
-es_oom = log_analysis('journalctl_chef-automate.txt', 'java.lang.OutOfMemoryError', a2service: 'automate-elasticsearch.default')
-control 'gatherlogs.automate2.elasticsearch_out_of_memory' do
-  impact 'high'
-  title 'Check to see if Automate is reporting a OutOfMemoryError for ElasticSearch'
-  desc "
-Automate is reporting OutOfMemoryError for ElasticSearch. Please check to heap size for ElasticSearch
-and increase it if necessary or see about increasing the amount of RAM on the system.
-
-https://automate.chef.io/docs/configuration/#setting-elasticsearch-heap
-  "
-
-  tag summary: es_oom.summary
-
-  describe es_oom do
-    its('last_entry') { should be_empty }
-  end
-end
-
-# max virtual memory areas vm.max_map_count [256000] is too low, increase to at     least [262144]
-es_vmc = log_analysis('journalctl_chef-automate.txt', 'max virtual memory areas vm.max_map_count \[\w+\] is too low, increase to at least \[\w+\]', a2service: 'automate-elasticsearch.default')
-control 'gatherlogs.automate2.elasticsearch_max_map_count_error' do
-  impact 'high'
-  title 'Check to see if Automate ES is reporting a error with vm.max_map_count setting'
-  desc "
-ElasticSearch is reporting that the vm.max_map_count is not set correctly. This is a sysctl setting
-that should be checked by the automate pre-flight tests.  If you recently rebooted make sure
-the settings are set in /etc/sysctl.conf
-
-Fix the system tuning failures indicated above by running the following:
-sysctl -w vm.max_map_count=262144
-
-To make these changes permanent, add the following to /etc/sysctl.conf:
-vm.max_map_count=262144
-  "
-
-  tag summary: es_vmc.summary
-
-  describe es_vmc do
-    its('last_entry') { should be_empty }
-  end
-end
-
-lb_workers = log_analysis('journalctl_chef-automate.txt', 'worker_connections are not enough', a2service: 'automate-load-balancer.default')
 control 'gatherlogs.automate2.loadbalancer_worker_connections' do
   title 'Check to see if Automate is reporting a error with not enough workers for the load balancer'
   desc "
@@ -107,11 +47,10 @@ problems then the ingestion process can get backed up and cause take up all the
 available workers.
   "
 
-  tag summary: lb_workers.summary
-
-  describe lb_workers do
+  describe lb_logs.find('worker_connections are not enough') do
     its('last_entry') { should be_empty }
   end
+  tag summary: lb_logs.summary!
 end
 
 butterfly_error = log_analysis('journalctl_chef-automate.txt', 'Butterfly error: Error reading or writing to DatFile', a2service: 'hab-sup')
@@ -123,7 +62,7 @@ control 'gatherlogs.automate2.butterfly_dat_error' do
   To fix this you will need to remove the failed DatFile and restart the Automate 2 services.
   '
 
-  tag summary: butterfly_error.summary
+  tag summary: butterfly_error.summary!
 
   describe butterfly_error do
     its('last_entry') { should be_empty }
@@ -140,7 +79,7 @@ There appears to be too many client connections to PostgreSQL, this is a non-fat
 as connections should be queued.
 "
 
-  tag summary: pg_client_count.summary
+  tag summary: pg_client_count.summary!
 
   describe pg_client_count do
     its('last_entry') { should be_empty }
@@ -156,13 +95,12 @@ check the logs for more information about what service is crashing and contact
 support to in order to resolve this issue.
   "
 
-  tag summary: panic_errors.summary
+  tag summary: panic_errors.summary!
   describe panic_errors do
     its('last_entry') { should be_empty }
   end
 end
 
-certificate_permissions = log_analysis('journalctl_chef-automate.txt', 'failed to generate TLS certificate: failed to generate deployment-service TLS certificate: certstrap sign failure: Get CA certificate error: permission denied', a2service: 'deployment-service.default')
 control 'gatherlogs.automate2.rootcert_permissions_error' do
   title 'Check for permission error when generating root TLS certificate'
   desc "
@@ -178,10 +116,11 @@ chmod 0444 /hab/svc/deployment-service/data/Chef_Automate*.crt /hab/svc/deployme
 ```
   "
 
-  tag summary: certificate_permissions.summary
-  describe certificate_permissions do
+  cert_error = 'failed to generate TLS certificate: failed to generate deployment-service TLS certificate: certstrap sign failure: Get CA certificate error: permission denied'
+  describe ds_logs.find(cert_error) do
     its('last_entry') { should be_empty }
   end
+  tag summary: ds_logs.summary!
 end
 
 saml_audience_check = log_analysis('journalctl_chef-automate.txt', 'Failed to authenticate: required audience', a2service: 'automate-dex.default')
@@ -198,8 +137,23 @@ Possible ways to fix this:
 
   tag kb: 'https://automate.chef.io/docs/configuration/#saml'
 
-  tag summary: saml_audience_check.summary
+  tag summary: saml_audience_check.summary!
   describe saml_audience_check do
     its('last_entry') { should be_empty }
   end
+end
+
+
+#unable to migrate a  TimeSeries index in Elasticsearch, error: migrateTimeSeries error
+compliance_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'compliance-service.default')
+control 'gatherlogs.automate2.elasticsearch_compliance_migration_error' do
+  title 'Check to see if ElasticSearch has issues migrating compliance indices'
+  desc "
+Compliance service is reporting an error while trying to migrate indices
+  "
+
+  describe compliance_logs.find('unable to migrate a TimeSeries index in Elasticsearch, error: migrateTimeSeries error') do
+    its('last_entry') { should be_empty }
+  end
+  tag summary: compliance_logs.summary!
 end

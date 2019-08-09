@@ -1,3 +1,5 @@
+es_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'automate-elasticsearch')
+
 control 'gatherlogs.automate2.elasticsearch_1gb_heap_size' do
   title 'Check that ElasticSearch is not configured with the default 1GB heap'
   impact 'critical'
@@ -27,14 +29,12 @@ ElasticSearch limits the max size for a terms in fields when saving documents.
 To fix this you will need to look at the node data being captured by chef-client
 and limit the size of the field being upload to the Chef-server/Automate.
 "
-  tag summary: es_injest_error.summary
-
   describe es_injest_error do
     its('last_entry') { should be_empty }
   end
+  tag summary: es_injest_error.summary!
 end
 
-es_translog_truncated = log_analysis('journalctl_chef-automate.txt', 'misplaced codec footer \(file truncated\?\)', a2service: 'automate-elasticsearch.default')
 control 'gatherlogs.automate2.elasticsearch_translog_truncated' do
   title 'Check to see if there are any errors about truncated transaction logs'
   desc "
@@ -52,13 +52,12 @@ To resolve this:
     'https://www.elastic.co/guide/en/elasticsearch/reference/current/index-modules-translog.html#corrupt-translog-truncation'
   ]
 
-  tag summary: es_translog_truncated.summary
-  describe es_translog_truncated do
+  describe es_logs.find('misplaced codec footer \(file truncated\?\)') do
     its('last_entry') { should be_empty }
   end
+  tag summary: es_logs.summary!
 end
 
-es_insufficient_memory = log_analysis('journalctl_chef-automate.txt', 'There is insufficient memory for the Java Runtime Environment to continue', a2service: 'automate-elasticsearch')
 control 'gatherlogs.automate2.elasticsearch_insufficent_memory' do
   title 'Check to see if ElasticSearch has issues starting up due to memory issues'
   desc "
@@ -71,14 +70,13 @@ or 26GB.
 Also check that there are no other processing using a large amount of memory.
   "
 
-  tag summary: es_insufficient_memory.summary
-  describe es_insufficient_memory do
+  describe es_logs.find('There is insufficient memory for the Java Runtime Environment to continue') do
     its('last_entry') { should be_empty }
   end
+  tag summary: es_logs.summary!
 end
 
 # primary shard is not active
-primary_shard = log_analysis('journalctl_chef-automate.txt', 'primary shard is not active', a2service: 'automate-elasticsearch')
 control 'gatherlogs.automate2.elasticsearch_primary_shard_unavailable' do
   title 'Check to see if Elasticsearch is reporting issues with primary shards'
   desc "
@@ -95,10 +93,63 @@ the above reroute command
     curl -XPOST 'localhost:10144/INDEX_NAME/_flush?force=true&pretty'
   "
 
-  tag summary: primary_shard.summary
-  describe primary_shard do
+  describe es_logs.find('primary shard is not active') do
     its('last_entry') { should be_empty }
   end
+  tag summary: es_logs.summary!
+end
+
+# max virtual memory areas vm.max_map_count [256000] is too low, increase to at     least [262144]
+control 'gatherlogs.automate2.elasticsearch_max_map_count_error' do
+  impact 'high'
+  title 'Check to see if Automate ES is reporting a error with vm.max_map_count setting'
+  desc "
+ElasticSearch is reporting that the vm.max_map_count is not set correctly. This is a sysctl setting
+that should be checked by the automate pre-flight tests.  If you recently rebooted make sure
+the settings are set in /etc/sysctl.conf
+
+Fix the system tuning failures indicated above by running the following:
+sysctl -w vm.max_map_count=262144
+
+To make these changes permanent, add the following to /etc/sysctl.conf:
+vm.max_map_count=262144
+  "
+
+  describe es_logs.find('max virtual memory areas vm.max_map_count \[\w+\] is too low, increase to at least \[\w+\]') do
+    its('last_entry') { should be_empty }
+  end
+  tag summary: es_logs.summary!
+end
+
+control 'gatherlogs.automate2.elasticsearch-high-gc-counts' do
+  impact 'high'
+  title 'Check to see if the ElasticSearch is reporting large number of GC events'
+  desc "
+The ElasticSearch service is reporting a large number of GC events, this is usually
+an indication that the heap size needs to be increased.
+  "
+
+  tag kb: 'https://automate.chef.io/docs/configuration/#setting-elasticsearch-heap'
+  describe es_logs.find('\[o.e.m.j.JvmGcMonitorService\] .* \[gc\]') do
+    its('hits') { should cmp <= 10 }
+  end
+  tag summary: es_logs.summary!
+end
+
+control 'gatherlogs.automate2.elasticsearch_out_of_memory' do
+  impact 'high'
+  title 'Check to see if Automate is reporting a OutOfMemoryError for ElasticSearch'
+  desc "
+Automate is reporting OutOfMemoryError for ElasticSearch. Please check to heap size for ElasticSearch
+and increase it if necessary or see about increasing the amount of RAM on the system.
+
+https://automate.chef.io/docs/configuration/#setting-elasticsearch-heap
+  "
+
+  describe es_logs.find('java.lang.OutOfMemoryError') do
+    its('last_entry') { should be_empty }
+  end
+  tag summary: es_logs.summary!
 end
 
 # read-only indices
@@ -125,5 +176,5 @@ control 'gatherlogs.automate2.elasticsearch_read_only_indicies' do
   describe read_only do
     its('last_entry') { should be_empty }
   end
-  tag summary: read_only.summary
+  tag summary: read_only.summary!
 end
