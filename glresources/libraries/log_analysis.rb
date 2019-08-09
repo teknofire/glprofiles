@@ -105,6 +105,7 @@ class LogAnalysis < Inspec.resource(1)
 
     flags = ''
     flags += '-i ' if @options[:case_sensitive] != true
+    # osx grep doesn't support -P correctly
     flags += inspec.os.family == 'darwin' ? '-E' : '-P'
 
     cmd << "tail -n#{@options[:log_limit]} #{logfile}"
