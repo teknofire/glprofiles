@@ -65,7 +65,7 @@ control 'gatherlogs.automate2.critical_disk_usage' do
 
     describe df.mount(mount) do
       its('used_percent') { should cmp < 100 }
-      its('available') { should cmp > disk_usage.to_filesize('250M') }
+      its('available') { should cmp > disk_usage.to_filesize('1GB') }
     end
   end
 end
@@ -98,7 +98,8 @@ control 'gatherlogs.automate2.sysctl-settings' do
     Recommended sysctl settings are not correct, recommend that these get updated
     to ensure the best performance possible for Automate 2.
   "
-  only_if { sysctl.exists? }
+  # skip control for now
+  only_if { false && sysctl.exists? }
   describe sysctl do
     its('vm_swappiness') { should cmp >= 1 }
     its('vm_swappiness') { should cmp <= 20 }
