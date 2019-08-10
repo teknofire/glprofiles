@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'libraries/memory'
+require 'glresources/libraries/memory'
 
 describe_inspec_resource 'memory' do
   context 'with no content' do

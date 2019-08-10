@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'libraries/common_logs'
+require 'glresources/libraries/common_logs'
 
 describe_inspec_resource 'common_logs' do
   context 'with defaults' do

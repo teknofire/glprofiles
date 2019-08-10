@@ -6,7 +6,7 @@ Style/FrozenStringLiteralComment:
 
 Metrics/LineLength:
   Exclude:
-    - libraries/*.rb
+    - glresources/libraries/*.rb
     - spec/**/*.rb
 
 Style/Documentation:
