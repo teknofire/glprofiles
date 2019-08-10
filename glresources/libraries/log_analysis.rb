@@ -2,7 +2,7 @@ class LogAnalysis < Inspec.resource(1)
   name 'log_analysis'
   desc 'Parse log files to find issues'
 
-  attr_accessor :logfile, :search, :messages
+  attr_accessor :logfile, :search
   def initialize(log, expr = nil, **options)
     @options = options || {}
 
@@ -10,7 +10,6 @@ class LogAnalysis < Inspec.resource(1)
     # default: 500mb
     @options[:log_limit] ||= 1024 * 1024 * 500
 
-    @log_contents_filename = nil
     @search = expr
     @logfile = log
     @summary ||= []
@@ -29,7 +28,7 @@ class LogAnalysis < Inspec.resource(1)
     generate_summary(true)
 
     # make sure we generate a summary for this search
-    GLResult.new(logfile, search, last_entry: last_entry, hits: hits, empty?: empty? )
+    GLResult.new(logfile, search, last_entry: last_entry, hits: hits, empty?: empty?)
   end
 
   def hits
@@ -114,12 +113,13 @@ class LogAnalysis < Inspec.resource(1)
   end
 
   def log_filename
-    @log_contents_filename ||= extract_service_logs
+    @log_filename ||= extract_service_logs
   end
 
   def extract_service_logs
     return logfile unless File.exist?(logfile)
     return logfile if !@options[:a2service] && File.size(logfile) <= @options[:log_limit]
+
     service = @options[:a2service]
 
     @tempfile = Tempfile.new(['gl', logfile, service].compact.join('-'))

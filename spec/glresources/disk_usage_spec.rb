@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'libraries/disk_usage'
+require 'glresources/libraries/disk_usage'
 
 describe_inspec_resource 'disk_usage' do
   context 'with no content' do
