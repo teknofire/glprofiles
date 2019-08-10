@@ -1,4 +1,5 @@
 es_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'automate-elasticsearch')
+es_gw_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'automate-es-gateway')
 
 control 'gatherlogs.automate2.elasticsearch_1gb_heap_size' do
   title 'Check that ElasticSearch is not configured with the default 1GB heap'
@@ -177,4 +178,33 @@ control 'gatherlogs.automate2.elasticsearch_read_only_indicies' do
     its('last_entry') { should be_empty }
   end
   tag summary: read_only.summary!
+end
+
+control 'gatherlogs.automate2.es_request_to_large' do
+  impact 'high'
+  title 'Check to see if Automate is reporting errors due to bulk requests to ES being too large'
+  desc "
+Automate is reporting errors when sending bulk requests to ElasticSearch. Typically this happens
+when Automate bundles compliance and converge requests for ingest into ElasticSearch and
+is unable to process them all in a timely manner and a large number get queued at once.
+
+This could be an indication of an issue with ElasticSearch being slow or some other performance
+issue such as slow disk IO. To work around this the bundle size can be adjusted using the
+following configs.
+
+```
+[ingest.v1.sys.service]
+  max_number_of_bundled_run_msgs = 10
+  max_number_of_bundled_action_msgs = 10
+  number_of_run_msg_publishers = 10
+```
+
+`number_of_run_msg_publishers` should be <= half the number of CPU cores on the Automate system.
+For example a system with 16 CPU cores should not set that to more than 8.
+  "
+
+  describe es_gw_logs.find('client intended to send too large body') do
+    its('last_entry') { should be_empty }
+  end
+  tag summary: es_gw_logs.summary!
 end
