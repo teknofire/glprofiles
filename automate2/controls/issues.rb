@@ -143,17 +143,15 @@ Possible ways to fix this:
   end
 end
 
-
 #unable to migrate a  TimeSeries index in Elasticsearch, error: migrateTimeSeries error
 compliance_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'compliance-service.default')
 control 'gatherlogs.automate2.elasticsearch_compliance_migration_error' do
   title 'Check to see if ElasticSearch has issues migrating compliance indices'
   desc "
-Compliance service is reporting an error while trying to migrate indices, this is
+Compliance service is reporting an error while trying to migrate indices
 
-A fix for this is pending and will be released in version > 20190729085402
-
-In the mean time the only way to fix this is to delete the offending index
+A fix for this is pending and will be released in version > 20190729085402, in
+the mean time the only way to fix this is to delete the offending index
   "
 
   describe compliance_logs.find('unable to migrate a TimeSeries index in Elasticsearch, error: migrateTimeSeries error') do
