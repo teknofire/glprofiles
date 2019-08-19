@@ -1,5 +1,6 @@
 es_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'automate-elasticsearch')
 es_gw_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'automate-es-gateway')
+es_sidecar_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'es-sidecar-service')
 
 control 'gatherlogs.automate2.elasticsearch_1gb_heap_size' do
   title 'Check that ElasticSearch is not configured with the default 1GB heap'
@@ -173,11 +174,38 @@ control 'gatherlogs.automate2.elasticsearch_read_only_indicies' do
   running the following command from the Automate server:
     curl -k -XPUT -H \"Content-Type: application/json\" http://localhost:10144/_all/_settings -d '{\"index.blocks.read_only_allow_delete\": null}'
   "
+  tag kb: 'https://automate.chef.io/docs/troubleshooting/#recovering-from-low-disk-conditions'
 
   describe read_only do
     its('last_entry') { should be_empty }
   end
   tag summary: read_only.summary!
+end
+
+#Disk free below critical threshold
+control 'gatherlogs.automate2.elasticsearch_low_disk_threshold' do
+  title 'Check for ElasticSearch reporting low disk space'
+  desc "
+  ElasticSearch is reporting that available disk space is running low.
+
+  It's possible that this can be triggered when running a backup if `/hab` and
+  the local backup directory are on the same mount. For example if `/hab` is
+  symlinked to `/var/chef-automate` or a similar location in `/var`, then if the
+  backup uses a large amount of disk space and then later cleans it up this
+  could trigger a low disk warning in ES and cause it to mark the indices as
+  read-only. Then later, the system appears to have adequate free space.
+
+  Once the disk space issues are resolved, you can remove the read-only flag by
+  running the following command from the Automate server:
+    curl -k -XPUT -H \"Content-Type: application/json\" http://localhost:10144/_all/_settings -d '{\"index.blocks.read_only_allow_delete\": null}'
+  "
+
+  tag kb: 'https://automate.chef.io/docs/troubleshooting/#recovering-from-low-disk-conditions'
+
+  describe es_sidecar_logs.find('Disk free below critical threshold') do
+    its('last_entry') { should be_empty }
+  end
+  tag summary: es_sidecar_logs.summary!
 end
 
 control 'gatherlogs.automate2.es_request_to_large' do
