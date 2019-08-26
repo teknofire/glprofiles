@@ -1,6 +1,7 @@
 es_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'automate-elasticsearch')
 es_gw_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'automate-es-gateway')
 es_sidecar_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'es-sidecar-service')
+es_cluster_state = log_analysis('elasticsearch_cluster_state.txt')
 
 control 'gatherlogs.automate2.elasticsearch_1gb_heap_size' do
   title 'Check that ElasticSearch is not configured with the default 1GB heap'
@@ -155,7 +156,6 @@ https://automate.chef.io/docs/configuration/#setting-elasticsearch-heap
 end
 
 # read-only indices
-read_only = log_analysis('elasticsearch_cluster_state.txt', '"read_only_allow_delete"\s+:\s+"true"')
 control 'gatherlogs.automate2.elasticsearch_read_only_indicies' do
   title 'Check to see if ElasticSearch is reporting any indicies as read_only'
   desc "
@@ -176,10 +176,33 @@ control 'gatherlogs.automate2.elasticsearch_read_only_indicies' do
   "
   tag kb: 'https://automate.chef.io/docs/troubleshooting/#recovering-from-low-disk-conditions'
 
-  describe read_only do
+  describe es_cluster_state.find('"read_only_allow_delete"\s+:\s+"true"') do
     its('last_entry') { should be_empty }
   end
-  tag summary: read_only.summary!
+  tag summary: es_cluster_state.summary!
+end
+
+control 'gatherlogs.automate2.elasticsearch_too_many_open_files' do
+  title 'Check to see if ElasticSearch is reporting any failed shards due to too many open files'
+  desc "
+  ElasticSearch is reporting that some shards have failed due to 'too many open files'.
+
+  To fix this you will need to increase the open file limit for the hab user.
+
+  ```bash
+  $ systemctl stop chef-automate
+  $ cat /etc/systemd/system/chef-automate.service.d/custom.conf
+  [Service] 
+  LimitNOFILE = 128000 
+  $ systemctl daemon-reload
+  $ systemctl start chef-automate
+  ```
+  "
+
+  describe es_cluster_state.find('failed shard on node .* Too many open files') do
+    its('last_entry') { should be_empty }
+  end
+  tag summary: es_cluster_state.summary!
 end
 
 #Disk free below critical threshold
