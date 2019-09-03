@@ -160,3 +160,27 @@ the mean time the only way to fix this is to delete the offending index
   tag summary: compliance_logs.summary!
   tag kb: 'https://github.com/chef/automate/pull/1153'
 end
+
+# Sep 03 14:09:54 hab[734]: deployment-service.default(O): time="2019-09-03T14:09:54Z" level=warning msg="Skipping periodic converge because disable file is present" file=/hab/svc/deployment-service/data/converge_disable
+control 'gatherlogs.automate2.deployment_service_converge_disabled' do
+  title 'Check to see if converge_disable sentinal file is present'
+  desc "
+The `converge_disable` sentinal file is present which prevents the deployment
+service from operating normally. If this file is present *do not* run
+`chef-automate restart-services` as this can cause the system to become stuck
+and unable to continue any action that was running that required the file to be
+created.
+
+This file is created during a restore and gets left behind when it fails, to
+prevent the deployment service from reconverging and giving the illusion that
+the restore was successful and Automate is running correctly.
+
+Please check the timestamp of the last message to ensure that it's not an old
+message from a previous action that was taking place on the system
+  "
+
+  describe ds_logs.find('Skipping periodic converge because disable file is present') do
+    its('last_entry') { should be_empty }
+  end
+  tag summary: ds_logs.summary!
+end
