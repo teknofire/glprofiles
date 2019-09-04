@@ -5,10 +5,11 @@ control 'gatherlogs.automate2.backups_delete_rename_across_device' do
   impact 'medium'
   title 'Check to see if Automate is reporting a failure with backups due to rename across devices error'
   desc "
-Automate is reporting while trying to perform an operation on the backups and is
-failing while trying to perform a rename across devices.  This happens when the
-system is running Automate < 20190325233053 and `/hab` and `/var/opt/chef-automate/backups`
-are on different mount points.
+Automate is encountering an error while trying to perform a backup operation.
+The failure is happening while trying to perform a rename across devices.
+
+This can happen when `/hab` and `/var/opt/chef-automate/backups` are mounted
+from different devices. 
 
 Upgrading Automate to the latest version or >= 20190325233053 will fix this issue
   "
