@@ -6,12 +6,14 @@ control '000.gatherlogs.automate2.package' do
   title 'check that Automate 2 is installed'
   desc "
   Automate was not found or is running an older version, please upgraded
-  to a newer version of Automate 2
+  to the latest version of Automate 2
   "
 
   tag system: { "Product": "Automate v2 #{automate.version}" }
+  tag verbose: true
+
   describe automate do
-    it { should exist }
+    its('version') { should cmp >= '20190827222442' }
   end
 end
 
@@ -92,27 +94,28 @@ Please make sure the system means the minimum hardware requirements
   end
 end
 
-control 'gatherlogs.automate2.sysctl-settings' do
-  title 'check that the sysctl settings make sense'
-  desc "
-    Recommended sysctl settings are not correct, recommend that these get updated
-    to ensure the best performance possible for Automate 2.
-  "
-  # skip control for now
-  only_if { false && sysctl.exists? }
-  describe sysctl do
-    its('vm_swappiness') { should cmp >= 1 }
-    its('vm_swappiness') { should cmp <= 20 }
-    its('fs_file-max') { should cmp >= 64_000 }
-    its('vm_max_map_count') { should cmp >= 256_000 }
-    its('vm_dirty_ratio') { should cmp >= 5 }
-    its('vm_dirty_ratio') { should cmp <= 30 }
-    its('vm_dirty_background_ratio') { should cmp >= 10 }
-    its('vm_dirty_background_ratio') { should cmp <= 60 }
-    its('vm_dirty_expire_centisecs') { should cmp >= 10_000 }
-    its('vm_dirty_expire_centisecs') { should cmp <= 30_000 }
-  end
-end
+# disabling this check as A2 updates these values in the systemctl unit file
+# control 'gatherlogs.automate2.sysctl-settings' do
+#   title 'check that the sysctl settings make sense'
+#   desc "
+#     Recommended sysctl settings are not correct, recommend that these get updated
+#     to ensure the best performance possible for Automate 2.
+#   "
+#   # skip control for now
+#   only_if { false && sysctl.exists? }
+#   describe sysctl do
+#     its('vm_swappiness') { should cmp >= 1 }
+#     its('vm_swappiness') { should cmp <= 20 }
+#     its('fs_file-max') { should cmp >= 64_000 }
+#     its('vm_max_map_count') { should cmp >= 256_000 }
+#     its('vm_dirty_ratio') { should cmp >= 5 }
+#     its('vm_dirty_ratio') { should cmp <= 30 }
+#     its('vm_dirty_background_ratio') { should cmp >= 10 }
+#     its('vm_dirty_background_ratio') { should cmp <= 60 }
+#     its('vm_dirty_expire_centisecs') { should cmp >= 10_000 }
+#     its('vm_dirty_expire_centisecs') { should cmp <= 30_000 }
+#   end
+# end
 
 failed_preflight_checks = log_analysis('chef-automate_preflight-check.txt', 'FAIL', case_sensitive: true)
 control 'gatherlogs.automate2.failed_preflight_checks' do
@@ -160,3 +163,5 @@ Please make sure the system means the minimum hardware requirements
     its('total') { should cmp >= 4 }
   end
 end
+
+# Sep 03 14:10:12 hab[734]: authz-service.default(O): time="2019-09-03T14:10:12Z" level=info msg="initializing OPA store with 28 V1 policies"
