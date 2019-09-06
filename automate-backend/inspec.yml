@@ -1,0 +1,8 @@
+name: automate-backend
+title: Automate HA Cluster backend node gatherlog profile
+maintainer: Will Fisher
+copyright: Chef
+copyright_email: will@chef.io
+license: Apache-2.0
+summary: Automate HA Cluster backend node gatherlog profile
+version: 0.1.0
