@@ -12,8 +12,8 @@ ElasticSearch has been configured to use the default 1GB heap size and needs to
 be updated to be at least 25% of the available memory but no more than 50% or
 26GB.
 
-Updating Automate to the latest version will automatically adjust the heap size
-if it has not been manually configured.
+Automate will automatically fix this when updated to the latest version or
+the it can be manually specified by using the KB link below.
 "
 
   tag kb: 'https://automate.chef.io/docs/configuration/#setting-elasticsearch-heap'
