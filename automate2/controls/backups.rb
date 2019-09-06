@@ -2,7 +2,7 @@
 bg_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'backup-gateway.default')
 
 control 'gatherlogs.automate2.backups_delete_rename_across_device' do
-  impact 'medium'
+  impact 'critical'
   title 'Check to see if Automate is reporting a failure with backups due to rename across devices error'
   desc "
 Automate is encountering an error while trying to perform a backup operation.
