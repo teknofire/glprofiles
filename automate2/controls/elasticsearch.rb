@@ -11,6 +11,10 @@ control 'gatherlogs.automate2.elasticsearch_1gb_heap_size' do
 ElasticSearch has been configured to use the default 1GB heap size and needs to
 be updated to be at least 25% of the available memory but no more than 50% or
 26GB.
+
+Automate will automatically adjust the heap size when updated to the latest
+version or the it can be manually specified by using the instructions linked
+below.
 "
 
   tag kb: 'https://automate.chef.io/docs/configuration/#setting-elasticsearch-heap'
