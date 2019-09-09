@@ -204,4 +204,5 @@ To fix this error remove the keys from the config toml and run
     its('last_entry') { should be_empty }
   end
   tag summary: ds_logs.summary!
+  tag kb: 'https://automate.chef.io/docs/configuration/#data-retention'
 end

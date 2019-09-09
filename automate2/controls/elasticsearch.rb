@@ -196,8 +196,8 @@ control 'gatherlogs.automate2.elasticsearch_too_many_open_files' do
   ```bash
   $ systemctl stop chef-automate
   $ cat /etc/systemd/system/chef-automate.service.d/custom.conf
-  [Service] 
-  LimitNOFILE = 128000 
+  [Service]
+  LimitNOFILE = 128000
   $ systemctl daemon-reload
   $ systemctl start chef-automate
   ```
