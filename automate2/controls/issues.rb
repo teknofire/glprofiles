@@ -189,7 +189,7 @@ end
 control 'gatherlogs.automate2.deprecated_config_keys' do
   title 'Check to see if applying a config update failed due to deperecated key'
   desc "
-The following config keys were deprecated in version
+The following config keys were deprecated in version 20190904132002
   * compliance.v1.sys.retention.compliance_report_days
   * event_feed_service.v1.sys.service.purge_event_feed_after_days
   * ingest.v1.sys.service.purge_converge_history_after_days
