@@ -184,3 +184,24 @@ message from a previous action that was taking place on the system
   end
   tag summary: ds_logs.summary!
 end
+
+# Sep 09 17:44:58 hab[8384]: deployment-service.default(O): time="2019-09-09T17:44:58Z" level=info msg="finished unary call with code InvalidArgument" error="rpc error: code = InvalidArgument desc = \nConfiguration key 'compliance.v1.sys.retention' has been deprecated and is no longer allowed. Configure the retention data lifecycle with the chef.automate.domain.data_lifecycle.api.Purge gRPC interface\n" grpc.code=InvalidArgument grpc.method=PatchAutomateConfig grpc.service=chef.automate.domain.deployment.Deployment grpc.start_time="2019-09-09T17:44:58Z" grpc.time_ms=29.635 span.kind=server system=grpc
+control 'gatherlogs.automate2.deprecated_config_keys' do
+  title 'Check to see if applying a config update failed due to deperecated key'
+  desc "
+The following config keys were deprecated in version
+  * compliance.v1.sys.retention.compliance_report_days
+  * event_feed_service.v1.sys.service.purge_event_feed_after_days
+  * ingest.v1.sys.service.purge_converge_history_after_days
+  * ingest.v1.sys.service.purge_actions_after_days
+  * data_lifecycle
+
+To fix this error remove the keys from the config toml and run
+`chef-automate config set/patch` again.
+  "
+
+  describe ds_logs.find('Configuration key .* has been deprecated and is no longer allowed') do
+    its('last_entry') { should be_empty }
+  end
+  tag summary: ds_logs.summary!
+end
