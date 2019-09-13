@@ -209,7 +209,7 @@ control 'gatherlogs.automate2.elasticsearch_too_many_open_files' do
   tag summary: es_cluster_state.summary!
 end
 
-#Disk free below critical threshold
+# Disk free below critical threshold
 control 'gatherlogs.automate2.elasticsearch_low_disk_threshold' do
   title 'Check for ElasticSearch reporting low disk space'
   desc "

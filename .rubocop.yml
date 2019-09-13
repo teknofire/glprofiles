@@ -5,6 +5,7 @@ Style/FrozenStringLiteralComment:
   Enabled: false
 
 Metrics/LineLength:
+  Enabled: false
   Exclude:
     - glresources/libraries/*.rb
     - spec/**/*.rb

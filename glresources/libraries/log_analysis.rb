@@ -137,9 +137,7 @@ class LogAnalysis < Inspec.resource(1)
   def exec_command(cmd)
     command = inspec.command(cmd)
 
-    if command.exit_status > 1
-      raise "#{cmd} exited #{command.exit_status}\nERROR MSG: #{command.stderr}"
-    end
+    raise "#{cmd} exited #{command.exit_status}\nERROR MSG: #{command.stderr}" if command.exit_status > 1
 
     command
   end

@@ -79,9 +79,7 @@ class PlatformVersion < Inspec.resource(1)
   end
 
   def read_content
-    unless platform_file.file?
-      raise Inspec::Exceptions::ResourceSkipped, "Can't read platform_version.txt"
-    end
+    raise Inspec::Exceptions::ResourceSkipped, "Can't read platform_version.txt" unless platform_file.file?
 
     platform_file.content
   end

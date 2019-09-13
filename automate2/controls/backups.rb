@@ -1,4 +1,4 @@
-#Aug 25 06:02:01 hab[24744]: backup-gateway.default(O): Error: Rename across devices not allowed, please fix your backend configuration (/hab/svc/backup-  gateway/data/.minio.sys/tmp/f726a257-b969-4518-80bd-522b9fa9ebda/9b31252f-932f-4a8c-88dc-93a510c9bf4f)->(/hab/svc/backup-gateway/data/backups/20190325060201/.status)
+# Aug 25 06:02:01 hab[24744]: backup-gateway.default(O): Error: Rename across devices not allowed, please fix your backend configuration (/hab/svc/backup-  gateway/data/.minio.sys/tmp/f726a257-b969-4518-80bd-522b9fa9ebda/9b31252f-932f-4a8c-88dc-93a510c9bf4f)->(/hab/svc/backup-gateway/data/backups/20190325060201/.status)
 bg_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'backup-gateway.default')
 
 control 'gatherlogs.automate2.backups_delete_rename_across_device' do
