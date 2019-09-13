@@ -11,7 +11,8 @@ The failure is happening while trying to perform a rename across devices.
 This can happen when `/hab` and `/var/opt/chef-automate/backups` are mounted
 from different devices.
 
-Upgrading Automate to the latest version or >= 20190325233053 will fix this issue
+This is fixed in Automate 20190325233053, please upgrade to the latest version
+to ensure this works properly.
   "
   describe bg_logs.find('Rename across devices not allowed') do
     its('last_entry') { should be_empty }
