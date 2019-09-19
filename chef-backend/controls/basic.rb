@@ -85,23 +85,30 @@ end
 
 services = service_status(:chef_backend)
 
-services.internal do |service|
-  control "gatherlogs.chef-backend.service_status.#{service.name}" do
-    title "check that #{service.name} service is running"
-    desc "There was a problem with the #{service.name} service.  Please check that it's
+control "gatherlogs.chef-backend.service_status" do
+  title "check that services are running"
+  desc "There was a problem with one or more services.  Please check that it's
 running, doesn't have a short run time, or the health checks are reporting an issue."
+  tag verbose: true
 
-    tag summary: service.summary
+  describe services do
+    it { should_not be_empty }
+  end
 
+  summaries = []
+  services.internal do |service|
     describe service do
       its('status') { should eq 'running' }
       its('runtime') { should cmp >= 90 }
     end
+    summaries << service.summary
   end
+
+  tag summary: summaries
 end
 
 # the clock difference against peer d4fed0cf06663880 is too high
-clocksync = log_analysis('var/log/chef-backend/etcd/current', 'the clock difference against peer .* is too high')
+etc_current = log_analysis('var/log/chef-backend/etcd/current')
 control 'gatherlogs.chef-backend.clock_out_of_sync' do
   title 'Check to see if ETCD is reporting issues with clocks being out of sync'
   desc "
@@ -109,9 +116,25 @@ ETCD is reporting issues with the local system clocking being too far out of syn
 
 Ensure that `chrony` or `ntpd` services are installed and running to keep the clocks in sync.
   "
-  tag summary: clocksync.summary
-
-  describe clocksync do
+  describe etc_current.find('the clock difference against peer .* is too high') do
     its('last_entry') { should be_empty }
   end
+  tag summary: etc_current.summary!
+end
+
+# 2019-09-19_18:54:10.99164 2019-09-19 18:54:10.990330 C | etcdmain: cannot access data directory: mkdir /var/opt/chef-backend/etcd/data: permission denied
+control 'gatherlogs.chef-backend.etc_cannot_mkdir_data_directory' do
+  title 'Check to see if ETCD is reporting errors trying to create its data directory'
+  desc "
+ETCD is reporting errors trying to create its data directory.
+
+If `/var/opt` or `/var/opt/chef-backend` storage is provided via a separate mount
+ensure that it is working correctly and that the permissions are correct for that
+mount.
+  "
+
+  describe etc_current.find('cannot access data directory: .* /var/opt/chef-backend/etcd/data') do
+    its('last_entry') { should be_empty }
+  end
+  tag summary: etc_current.summary!
 end

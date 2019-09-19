@@ -43,6 +43,10 @@ class ServiceStatus < Inspec.resource(1)
     "service log #{status_file}"
   end
 
+  def empty?
+    @content[:internal].empty? && @content[:external].empty?
+  end
+
   private
 
   def status_file
