@@ -1,6 +1,6 @@
-es_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'automate-elasticsearch')
-es_gw_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'automate-es-gateway')
-es_sidecar_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'es-sidecar-service')
+es_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'automate-elasticsearch.default')
+es_gw_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'automate-es-gateway.default')
+es_sidecar_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'es-sidecar-service.default')
 es_cluster_state = log_analysis('elasticsearch_cluster_state.txt')
 
 control 'gatherlogs.automate2.elasticsearch_1gb_heap_size' do
@@ -84,10 +84,10 @@ Also check that there are no other processing using a large amount of memory.
 end
 
 # primary shard is not active
-control 'gatherlogs.automate2.elasticsearch_primary_shard_unavailable' do
-  title 'Check to see if Elasticsearch is reporting issues with primary shards'
+control 'gatherlogs.automate2.elasticsearch_failed shards' do
+  title 'Check to see if Elasticsearch is reporting issues with failed shards'
   desc "
-Elasticsearch is reporting that there are primary shards that are unavailable.
+Elasticsearch is reporting that there are some shards are unavailable.
 
 To attempt a retry for the shards, issue the following
 
@@ -101,6 +101,9 @@ the above reroute command
   "
 
   describe es_logs.find('primary shard is not active') do
+    its('last_entry') { should be_empty }
+  end
+  describe es_logs.find('org.elasticsearch.action.search.SearchPhaseExecutionException: all shards failed') do
     its('last_entry') { should be_empty }
   end
   tag summary: es_logs.summary!
