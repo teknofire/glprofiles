@@ -17,13 +17,14 @@ control '000.gatherlogs.automate2.package' do
   end
 end
 
+services = service_status(:automate2)
 control '000.gatherlogs.automate2.system_info' do
   tag system: {
-    'Habitat' => file('hab_version.txt').content.lines.last.chomp
+    'Habitat' => file('hab_version.txt').content.lines.last.chomp,
+    'Workflow' => services.internal_service?('automate-workflow-server') ? 'Enabled' : 'Disabled'
   }
 end
 
-services = service_status(:automate2)
 
 control '000.gatherlogs.automate2.internal_service_status' do
   title 'check that Automate services are running'
@@ -32,7 +33,6 @@ One or more Automate services are reporting issues. Please check for any
 services that might be failed, have a short run time or failing their health
 checks.
 "
-
   impact 'critical'
 
   tag verbose: true
