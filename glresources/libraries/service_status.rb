@@ -96,7 +96,6 @@ class ServiceStatus < Inspec.resource(1)
     read_content.each_line do |line|
       # skip header
       match = line.match(/^(\w+)\s+(\w+)\s+\(pid (\w+)\)\s+(\d+d \d+h \d+m \d+s)\s+(.*)$/)
-      puts match.inspect
       next if match.nil?
 
       _dummy, service, status, pid, runtime, health = *match.to_a
