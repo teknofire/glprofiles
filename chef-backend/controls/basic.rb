@@ -21,7 +21,7 @@ end
 
 df = disk_usage
 
-%w[/ /var /var/opt /var/opt/chef-backend /var/log /var/log/chef-backend].each do |mount|
+%w[/ /var /var/opt /var/opt/chef-backend /var/log /var/log/chef-backend /tmp].each do |mount|
   control "gatherlogs.chef-backend.critical_disk_usage.#{mount}" do
     title "check that #{mount} has plenty of free space"
     desc "
@@ -35,6 +35,22 @@ df = disk_usage
       its('used_percent') { should cmp < 100 }
       its('available') { should cmp > disk_usage.to_filesize('250M') }
     end
+  end
+end
+
+control "gatherlogs.chef-backend.tmp_free_space" do
+  title "check that /tmp has enough of free space for backups"
+  desc "
+`chef-backend-ctl backup` will save postgresql backup files to `/tmp`, if there
+is not enough free space it will cause an error.
+  "
+
+  tag verbose: true
+  only_if { df.exists?('/tmp') }
+
+  describe df.mount('/tmp') do
+    its('used_percent') { should cmp < 100 }
+    its('available') { should cmp > disk_usage.to_filesize('2G') }
   end
 end
 
