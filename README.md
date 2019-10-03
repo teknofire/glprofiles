@@ -19,7 +19,9 @@ rake test
 
 This is designed to be used with the [gatherlogs-reporter](https://github.com/chef/gatherlogs-reporter) tool
 
-## License
+## License & Authors
+
+* Author: Will Fisher (will@teknofire.com)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
