@@ -4,27 +4,29 @@ class ServiceStatus < Inspec.resource(1)
 
   def initialize(product)
     @product = product
-    status_content = read_content(status_file)
-    @content = case @product.to_sym
-               when :automate, :chef_server
-                 parse_services(status_content)
-               when :automate2
-                 parse_a2_services(status_content)
-               when :chef_backend
-                 parse_backend_services(status_content)
-               end
+  end
+
+  def content
+    @content ||= case @product.to_sym
+                 when :automate, :chef_server
+                   parse_services
+                 when :automate2
+                   parse_a2_services
+                 when :chef_backend
+                   parse_backend_services
+                 end
   end
 
   def method_missing(service)
-    @content[service.to_sym] || super
+    content[service.to_sym] || super
   end
 
   def respond_to_missing?(service, include_private = false)
-    @content.key?(service.to_sym) || super
+    content.key?(service.to_sym) || super
   end
 
   def internal_service?(name)
-    @content[:internal].has_key?(name)
+    internal.key?(name)
   end
 
   def exists?
@@ -32,14 +34,22 @@ class ServiceStatus < Inspec.resource(1)
   end
 
   def internal
-    @content[:internal].each do |_service, service_object|
-      yield service_object
+    if block_given?
+      content[:internal].each do |_service, service_object|
+        yield service_object
+      end
+    else
+      content[:internal]
     end
   end
 
   def external
-    @content[:external].each do |_service, service_object|
-      yield service_object
+    if block_given?
+      content[:external].each do |_service, service_object|
+        yield service_object
+      end
+    else
+      content[:external]
     end
   end
 
@@ -48,7 +58,7 @@ class ServiceStatus < Inspec.resource(1)
   end
 
   def empty?
-    @content[:internal].empty? && @content[:external].empty?
+    internal.empty? && external.empty?
   end
 
   private
@@ -66,10 +76,10 @@ class ServiceStatus < Inspec.resource(1)
     end
   end
 
-  def parse_a2_services(content)
+  def parse_a2_services
     services = { internal: {}, external: {} }
 
-    content.each_line do |line|
+    read_content.each_line do |line|
       next if line =~ /^chef-automate_status$/
       next if line =~ /^\s*$/ # blank lines
       next if line =~ /^Service Name/
@@ -77,16 +87,16 @@ class ServiceStatus < Inspec.resource(1)
       service, status, health, runtime, pid = line.split(/\s+/)
       services[:internal][service] = ServiceObject.new(name: service, status: status, pid: pid, runtime: runtime.to_i, health: health, internal: true)
     end
-
     services
   end
 
-  def parse_backend_services(content)
+  def parse_backend_services
     services = { internal: {}, external: {} }
 
-    content.each_line do |line|
+    read_content.each_line do |line|
       # skip header
-      match = line.match(/^(\w+)\s+(\w+) \(pid (\w+)\)\s+(\dd \dh \d\dm \d\ds)\s+(.*)$/)
+      match = line.match(/^(\w+)\s+(\w+)\s+\(pid (\w+)\)\s+(\d+d \d+h \d+m \d+s)\s+(.*)$/)
+      puts match.inspect
       next if match.nil?
 
       _dummy, service, status, pid, runtime, health = *match.to_a
@@ -99,35 +109,35 @@ class ServiceStatus < Inspec.resource(1)
     services
   end
 
-  def parse_services(content)
+  def parse_services
     services = { internal: {}, external: {} }
-    internal = true
-    content.each_line do |line|
+    is_internal = true
+    read_content.each_line do |line|
       next if line[0] == '-'
       next if line =~ /^\s*$/ # blank lines
       next if line =~ /Internal Services/
 
       if /External Services/.match?(line)
-        internal = false
+        is_internal = false
         next
       end
 
       service_line, _log_line = line.gsub(/[:\(\)]/, '').split(';')
 
-      if internal
+      if is_internal
         status, service, _dummy, pid, runtime = service_line.split(/\s+/)
-        services[:internal][service] = ServiceObject.new(name: service, status: status, pid: pid, runtime: runtime.to_i, internal: internal)
+        services[:internal][service] = ServiceObject.new(name: service, status: status, pid: pid, runtime: runtime.to_i, internal: is_internal)
       else
         status, service, _dummy, constatus, _dummy, host = service_line.split(/\s+/)
-        services[:external][service] = ServiceObject.new(name: service, status: status, internal: internal, connection_status: constatus, host: host)
+        services[:external][service] = ServiceObject.new(name: service, status: status, internal: is_internal, connection_status: constatus, host: host)
       end
     end
 
     services
   end
 
-  def read_content(filename)
-    f = inspec.file(filename)
+  def read_content
+    f = inspec.file(status_file)
     if f.file?
       f.content
     else
