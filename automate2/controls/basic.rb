@@ -25,7 +25,6 @@ control '000.gatherlogs.automate2.system_info' do
   }
 end
 
-
 control '000.gatherlogs.automate2.internal_service_status' do
   title 'check that Automate services are running'
   desc "
