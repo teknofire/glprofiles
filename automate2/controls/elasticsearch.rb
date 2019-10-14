@@ -274,6 +274,14 @@ control 'gatherlogs.automate2.es_gateway_timeout_errors' do
   desc "
 Automate is reporting errors connecting to the upstream ElasticSearch node and is unable to
 talk to ElasticSearch.
+
+Check the logs for Elasticsearch to ensure there are no errors being reported. If
+automate is using an external Elasticsearch cluster check each one to ensure they are
+working correctly.
+
+To see the ES health run:
+  curl -k 'http://localhost:10144/_cat/health?v' # through Automate Elasticsearch Gateway
+  curl -k 'http://ES_HOSTNAME:ES_PORT/_cat/health?v' # directly to Elasticsearch node
   "
 
   describe es_gw_logs.find('upstream timed out') do
