@@ -3,6 +3,7 @@ es_gw_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'automate-e
 es_sidecar_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'es-sidecar-service.default')
 es_cluster_state = log_analysis('elasticsearch_cluster_state.txt')
 
+
 control 'gatherlogs.automate2.elasticsearch_1gb_heap_size' do
   title 'Check that ElasticSearch is not configured with the default 1GB heap'
   impact 'critical'
@@ -262,6 +263,20 @@ For example a system with 16 CPU cores should not set that to more than 8.
   "
 
   describe es_gw_logs.find('client intended to send too large body') do
+    its('last_entry') { should be_empty }
+  end
+  tag summary: es_gw_logs.summary!
+end
+
+# Oct 09 20:33:55 hab[2588]: automate-es-gateway.default(O): 2019/10/09 20:33:55 [error] 8033#0: *3683141 upstream timed out (110: Connection timed out) while SSL handshaking to upstream, client: 148.93.148.77,  server: , request: "HEAD /node-attribute HTTP/1.1", upstream: "https://XXX.XXX.XXX.72:9200/node-attribute", host: "XXX.XXX.XXX.77:10144"
+control 'gatherlogs.automate2.es_gateway_timeout_errors' do
+  title 'Check to see if Automate is reporting errors due to upstream elasticsearch timeouts'
+  desc "
+Automate is reporting errors connecting to the upstream ElasticSearch node and is unable to
+talk to ElasticSearch.
+  "
+
+  describe es_gw_logs.find('upstream timed out') do
     its('last_entry') { should be_empty }
   end
   tag summary: es_gw_logs.summary!

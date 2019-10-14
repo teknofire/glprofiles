@@ -206,3 +206,17 @@ To fix this error remove the keys from the config toml and run
   tag summary: ds_logs.summary!
   tag kb: 'https://automate.chef.io/docs/configuration/#data-retention'
 end
+
+control 'gatherlogs.automate2.load_balancer_timeout_errors' do
+  title 'Check to see if Automate is reporting errors in the automate-loadbalancer due to upstream timeouts'
+  desc "
+Automate loadbalancer is reporting errors connecting to the upstream node.
+
+Please check the status of the upstream service to find any additional errors
+  "
+
+  describe lb_logs.find('upstream timed out') do
+    its('last_entry') { should be_empty }
+  end
+  tag summary: lb_logs.summary!
+end
