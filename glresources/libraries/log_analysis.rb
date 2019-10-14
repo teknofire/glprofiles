@@ -28,7 +28,7 @@ class LogAnalysis < Inspec.resource(1)
     generate_summary(true)
 
     # make sure we generate a summary for this search
-    GLResult.new(logfile, search, last_entry: last_entry, hits: hits, empty?: empty?)
+    GLResult.new(logfile, search, last_entry: last_entry, first_entry: first_entry, hits: hits, empty?: empty?)
   end
 
   def hits
@@ -54,6 +54,10 @@ class LogAnalysis < Inspec.resource(1)
     last || ''
   end
 
+  def first_entry
+    first || ''
+  end
+
   def content
     messages
   end
@@ -65,6 +69,7 @@ class LogAnalysis < Inspec.resource(1)
     @summary.push <<~EOS
       Found #{hits} messages about '#{search}'
       File: #{logfile}
+      First entry: #{first_entry[0..2000]}
       Last entry: #{last_entry[0..2000]}
     EOS
     @generated_summary = true
@@ -154,6 +159,10 @@ class GLResult
 
   def last_entry
     fetch :last_entry
+  end
+
+  def first_entry
+    fetch :first_entry
   end
 
   def hits
