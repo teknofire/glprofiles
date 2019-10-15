@@ -266,3 +266,29 @@ For example a system with 16 CPU cores should not set that to more than 8.
   end
   tag summary: es_gw_logs.summary!
 end
+
+# Oct 09 20:33:55 hab[2588]: automate-es-gateway.default(O): 2019/10/09 20:33:55 [error] 8033#0: *3683141 upstream timed out (110: Connection timed out) while SSL handshaking to upstream, client: 148.93.148.77,  server: , request: "HEAD /node-attribute HTTP/1.1", upstream: "https://XXX.XXX.XXX.72:9200/node-attribute", host: "XXX.XXX.XXX.77:10144"
+control 'gatherlogs.automate2.es_gateway_timeout_errors' do
+  title 'Check to see if Automate is reporting errors due to upstream elasticsearch timeouts'
+  desc "
+Automate is reporting errors connecting to the upstream ElasticSearch node and is unable to
+talk to ElasticSearch.
+
+Check the logs for Elasticsearch to ensure there are no errors being reported. If
+automate is using an external Elasticsearch cluster check each one to ensure they are
+working correctly.
+
+To see the ES health run:
+  curl -k 'http://localhost:10144/_cat/health?v' # through Automate Elasticsearch Gateway
+  curl -k 'http://ES_HOSTNAME:ES_PORT/_cat/health?v' # directly to Elasticsearch node
+  "
+
+  describe es_gw_logs.find('upstream timed out') do
+    its('last_entry') { should be_empty }
+  end
+  describe es_gw_logs.find('no live upstreams while connecting to upstream') do
+    its('last_entry') { should be_empty }
+  end
+
+  tag summary: es_gw_logs.summary!
+end
