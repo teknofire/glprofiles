@@ -287,5 +287,9 @@ To see the ES health run:
   describe es_gw_logs.find('upstream timed out') do
     its('last_entry') { should be_empty }
   end
+  describe es_gw_logs.find('no live upstreams while connecting to upstream') do
+    its('last_entry') { should be_empty }
+  end
+
   tag summary: es_gw_logs.summary!
 end
