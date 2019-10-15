@@ -3,7 +3,6 @@ es_gw_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'automate-e
 es_sidecar_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'es-sidecar-service.default')
 es_cluster_state = log_analysis('elasticsearch_cluster_state.txt')
 
-
 control 'gatherlogs.automate2.elasticsearch_1gb_heap_size' do
   title 'Check that ElasticSearch is not configured with the default 1GB heap'
   impact 'critical'
