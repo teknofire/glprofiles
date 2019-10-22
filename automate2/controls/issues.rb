@@ -163,9 +163,9 @@ end
 
 # Sep 03 14:09:54 hab[734]: deployment-service.default(O): time="2019-09-03T14:09:54Z" level=warning msg="Skipping periodic converge because disable file is present" file=/hab/svc/deployment-service/data/converge_disable
 control 'gatherlogs.automate2.deployment_service_converge_disabled' do
-  title 'Check to see if converge_disable sentinal file is present'
+  title 'Check to see if converge_disable sentinel file is present'
   desc "
-The `converge_disable` sentinal file is present which prevents the deployment
+The `converge_disable` sentinel file is present which prevents the deployment
 service from operating normally. If this file is present *do not* run
 `chef-automate restart-services` as this can cause the system to become stuck
 and unable to continue any action that was running that required the file to be
@@ -187,7 +187,7 @@ end
 
 # Sep 09 17:44:58 hab[8384]: deployment-service.default(O): time="2019-09-09T17:44:58Z" level=info msg="finished unary call with code InvalidArgument" error="rpc error: code = InvalidArgument desc = \nConfiguration key 'compliance.v1.sys.retention' has been deprecated and is no longer allowed. Configure the retention data lifecycle with the chef.automate.domain.data_lifecycle.api.Purge gRPC interface\n" grpc.code=InvalidArgument grpc.method=PatchAutomateConfig grpc.service=chef.automate.domain.deployment.Deployment grpc.start_time="2019-09-09T17:44:58Z" grpc.time_ms=29.635 span.kind=server system=grpc
 control 'gatherlogs.automate2.deprecated_config_keys' do
-  title 'Check to see if applying a config update failed due to deperecated key'
+  title 'Check to see if applying a config update failed due to deprecated key'
   desc "
 The following config keys were deprecated in version 20190904132002
   * compliance.v1.sys.retention.compliance_report_days
