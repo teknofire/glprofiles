@@ -2,6 +2,7 @@ title 'Basic checks for the chef-server configuration'
 
 chef_server = installed_packages('chef-server-core')
 
+awsnative = log_analysis('ps_fauxww.txt', 'aws-signing-proxy')
 control '000.gatherlogs.chef-server.package' do
   title 'check that chef-server is installed'
   desc "
@@ -10,7 +11,8 @@ control '000.gatherlogs.chef-server.package' do
   "
 
   tag system: {
-    'Product' => "Chef-Server #{chef_server.version}"
+    'Product' => "Chef-Server #{chef_server.version}",
+    'AWS Native' => awsnative.exists? ? 'Yes' : 'No',
   }
 
   only_if { chef_server.exists? }
