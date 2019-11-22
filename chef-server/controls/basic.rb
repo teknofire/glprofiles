@@ -22,6 +22,19 @@ control '000.gatherlogs.chef-server.package' do
   end
 end
 
+control 'gatherlogs.chef-server.includes_logs' do
+  title 'Check that the log bundle actually includes the opscode log directory'
+  desc "
+  The opscode log directory was missing from the log bundle. This can happen when
+  /var/log/opscode is a symlink to another location.
+  "
+
+  describe directory('var/log/opscode') do
+    it { should exist }
+  end
+end
+
+
 control 'gatherlogs.chef-server.postgreql-upgrade-applied' do
   title 'make sure customer is using chef-server version that includes postgresl 9.6'
   desc "
