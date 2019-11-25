@@ -135,7 +135,7 @@ Please check the chef-automate_preflight-check.txt for ways to remediate the fai
   end
 end
 
-failed_mmc_checks = log_analysis('chef-automate_preflight-check.txt', 'FAIL\| vm.max_map_count=.* must be at least 262144', case_sensitive: true)
+failed_mmc_checks = log_analysis('chef-automate_preflight-check.txt', 'FAIL\|\s+vm.max_map_count', case_sensitive: true)
 control 'gatherlogs.automate2.failed_max_map_count_check' do
   impact 1
   title 'Check automate preflight output for max_map_count failed'
