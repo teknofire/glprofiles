@@ -135,6 +135,31 @@ Please check the chef-automate_preflight-check.txt for ways to remediate the fai
   end
 end
 
+failed_mmc_checks = log_analysis('chef-automate_preflight-check.txt', 'FAIL\| vm.max_map_count=.* must be at least 262144', case_sensitive: true)
+control 'gatherlogs.automate2.failed_max_map_count_check' do
+  impact 1
+  title 'Check automate preflight output for max_map_count failed'
+  desc "
+Automate preflight checks is reporting a failure because vm.max_map_count is set too low. 
+The more recent versions of ElasticSearch require this to be >= 262144 and will not start if this fails.
+
+To ensure no issues with future upgrades to Automate the above settings must be updated.
+
+To fix the system tuning failures, run the following:
+sysctl -w vm.max_map_count=262144
+sysctl -w vm.dirty_expire_centisecs=20000
+
+To make these changes permanent, add the following to /etc/sysctl.conf:
+vm.max_map_count=262144
+vm.dirty_expire_centisecs=20000
+  "
+  tag summary: failed_mmc_checks.messages
+
+  describe failed_mmc_checks do
+    its('hits') { should eq 0 }
+  end
+end
+
 notification_error = log_analysis('journalctl_chef-automate.txt', 'Notifications.WebhookSender.Impl \[error\] .* failed to post', a2service: 'notifications-service.default')
 control 'gatherlogs.automate2.notifications-failed-to-send' do
   title 'Check to see if the notifications services is reporting errors sending messages'
