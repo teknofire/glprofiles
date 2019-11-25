@@ -147,11 +147,9 @@ To ensure no issues with future upgrades to Automate the above settings must be 
 
 To fix the system tuning failures, run the following:
 sysctl -w vm.max_map_count=262144
-sysctl -w vm.dirty_expire_centisecs=20000
 
 To make these changes permanent, add the following to /etc/sysctl.conf:
 vm.max_map_count=262144
-vm.dirty_expire_centisecs=20000
   "
   tag summary: failed_mmc_checks.messages
 
