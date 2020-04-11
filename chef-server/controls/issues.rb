@@ -200,6 +200,27 @@ opscode_erchef['keygen_timeout'] = 5000
   end
 end
 
+control 'gatherlogs.chef-server.postgresql_samenet_issue' do
+  title 'Check to see if pg_hba.conf might be missing addresses'
+  desc "
+Erlang services are reporting that they are unable to connect to the database with the
+invalid_authorization_specification error. This can mean that pg_hba.conf is not updated
+with the IP addresses of all of the nodes in the cluster. Please refer to the documentation
+to update the postgresql.md5_auth_cidr_addresses setting on your Chef Backend HA nodes,
+or the appropriate setting for your postgresql clustering mechanism.
+"
+  common_logs.pg_hba do |logfile|
+    invalid_authorization = log_analysis(
+      "var/log/opscode/#{logfile}",
+      'invalid_authorization_specification'
+    )
+    tag summary: invalid_authorization.summary unless invalid_authorization.empty?
+    describe invalid_authorization do
+      its('hits') { should cmp <=20 }
+    end
+  end
+end
+
 control 'gatherlogs.chef-server.rabbitmq_access_error' do
   title 'Check to see if rabbmit mq is having error accessing files'
   desc '
