@@ -1,0 +1,6 @@
+Sep 25 00:48:57 automate.example.com hab[1927]: automate-elasticsearch.default(O): org.elasticsearch.bootstrap.StartupException: java.lang.IllegalStateException: Unable to access 'path.repo' (/var/opt/chef-automate/backups)
+Sep 25 00:48:57 automate.example.com hab[1927]: automate-elasticsearch.default(O): Caused by: java.lang.IllegalStateException: Unable to access 'path.repo' (/var/opt/chef-automate/backups)
+Sep 25 00:49:09 automate.example.com hab[1927]: automate-elasticsearch.default(O): org.elasticsearch.bootstrap.StartupException: java.lang.IllegalStateException: Unable to access 'path.repo' (/var/opt/chef-automate/backups)
+Sep 25 00:49:09 automate.example.com hab[1927]: automate-elasticsearch.default(O): Caused by: java.lang.IllegalStateException: Unable to access 'path.repo' (/var/opt/chef-automate/backups)
+Sep 25 00:49:19 automate.example.com hab[1927]: automate-elasticsearch.default(O): org.elasticsearch.bootstrap.StartupException: java.lang.IllegalStateException: Unable to access 'path.repo' (/var/opt/chef-automate/backups)
+Sep 25 00:49:19 automate.example.com hab[1927]: automate-elasticsearch.default(O): Caused by: java.lang.IllegalStateException: Unable to access 'path.repo' (/var/opt/chef-automate/backups)
