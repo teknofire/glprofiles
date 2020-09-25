@@ -292,3 +292,20 @@ To see the ES health run:
 
   tag summary: es_gw_logs.summary!
 end
+
+# Likely permission error in a directory tree Elasticsearch needs to access
+es_filepermission_error = log_analysis('journalctl_chef-automate.txt', 'IllegalStateException: Unable to access', a2service: 'automate-elasticsearch.default')
+control 'gatherlogs.automate2.filepermission_error' do
+  title 'Check to see if there is a permission error preventing ElasticSearch from starting'
+
+  desc "
+ElasticSearch needs to be able to read the paths configured for its use.
+
+To fix this you will need to look at the displayed error message and make sure it's readable
+by the hab user Automate uses to start the service.
+"
+  describe es_filepermission_error do
+    its('last_entry') { should be_empty }
+  end
+  tag summary: es_filepermission_error.summary!
+end
