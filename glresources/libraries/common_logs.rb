@@ -20,6 +20,15 @@ class CommonLogs < Inspec.resource(1)
     end
   end
 
+  def pg_hba
+    files = %w[opscode-chef-mover/error.log opscode-chef-mover/console.log opscode-chef-mover/crash.log opscode-chef-mover/current opscode-erchef/sasl-error.log opscode-erchef/crash.log opscode-erchef/current opscode-erchef/erchef.log bookshelf/error.log bookshelf/console.log bookshelf/crash.log bookshelf/current oc_bifrost/error.log oc_bifrost/console.log oc_bifrost/crash.log oc_bifrost/current pg_stat_activity.txt private-chef-ctl_status.txt]
+    if block_given?
+      files.each { |f| yield f }
+    else
+      files
+    end
+  end
+
   def solr4
     files = %w[current]
     if block_given?

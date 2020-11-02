@@ -31,3 +31,23 @@ an indication that the heap size needs to be increased.
     its('hits') { should cmp <= 10 }
   end
 end
+
+control 'gatherlogs.chef-server.postgresql_samenet_issue' do
+  title 'Check to see if pg_hba.conf might be missing addresses'
+  desc "
+PostgreSQL is reporting that pg_hba.conf has not been updated with the IP addresses
+of all of the nodes in the cluster. Please refer to the documentation to update the
+postgresql.md5_auth_cidr_addresses setting on your Chef Backend HA nodes, or the
+appropriate setting for your postgresql clustering mechanism.
+"
+  common_logs.pg_hba do |logfile|
+    pg_hba_conf = log_analysis(
+      "./#{logfile}",
+      'FATAL:  no pg_hba.conf entry'
+    )
+    tag summary: pg_hba_conf.summary
+    describe pg_hba_conf do
+      its('last_entry') { should be_empty }
+    end
+  end
+end
