@@ -17,7 +17,7 @@ version or the it can be manually specified by using the instructions linked
 below.
 "
 
-  tag kb: 'https://automate.chef.io/docs/configuration/#setting-elasticsearch-heap'
+  tag kb: 'https://docs.chef.io/automate/configuration/#setting-elasticsearch-heap'
 
   describe file('hab/svc/automate-elasticsearch/config/jvm.options') do
     its('content') { should_not match(/-Xms1g/) }
