@@ -151,7 +151,7 @@ control 'gatherlogs.automate2.elasticsearch_compliance_migration_error' do
 Compliance service is reporting an error while trying to migrate indices
 
 A fix for this is pending and will be released in version > 20190729085402, in
-the mean time the only way to fix this is to delete the offending index
+the meantime the only way to fix this is to delete the offending index
   "
 
   describe compliance_logs.find('unable to migrate a TimeSeries index in Elasticsearch, error: migrateTimeSeries error') do
@@ -220,3 +220,26 @@ Please check the status of the upstream service to find any additional errors
   end
   tag summary: lb_logs.summary!
 end
+
+
+
+# unable to migrate a  TimeSeries index in Elasticsearch, error: migrateTimeSeries error
+compliance_logs = log_analysis('journalctl_chef-automate.txt', a2service: 'compliance-service.default')
+control 'gatherlogs.automate2.inspec_minimum_version_error' do
+  title 'Check to see if ElasticSearch has issues migrating compliance indices'
+  desc "
+Compliance service is reporting an error while trying to migrate indices
+
+A fix for this is pending and will be released in version > 20190729085402, in
+the mean time the only way to fix this is to delete the offending index
+  "
+
+  describe compliance_logs.find('unable to migrate a TimeSeries index in Elasticsearch, error: migrateTimeSeries error') do
+    its('last_entry') { should be_empty }
+  end
+  tag summary: compliance_logs.summary!
+  tag kb: 'https://github.com/chef/automate/pull/1153'
+end
+
+
+is older than minimum supported version
