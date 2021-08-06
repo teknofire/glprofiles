@@ -4,15 +4,14 @@ manage = installed_packages('opscode-manage') unless manage.exists?
 sync = installed_packages('chef-sync')
 
 control '030.gatherlogs.chef-server.reporting-with-2018-partition-tables' do
-  title 'make sure installed reporting version has 2018 parititon tables fix'
+  title 'Make sure Reporting is uninstalled and all data removed'
   desc "
-  Reporting < 1.7.10 has a bug where it does not create the 2018
-  partition tables. In order to fix this the user should install reporting >= 1.8.0
+  Reporting has been EOL since 2018. Recommend that the customer follow the knowlege base article link to remove it
 
   Version: #{reporting.version}
 "
 
-  tag kb: 'https://getchef.zendesk.com/hc/en-us/articles/360001425252-Fixing-missing-2018-Reporting-partition-tables'
+  tag kb: 'https://getchef.zendesk.com/hc/en-us/articles/360049009791-Uninstall-Reporting-Add-on-502-503-POST-error-to-the-runs-API-endpoint-'
 
   sysinfo = {
     'Reporting' => reporting.exists? ? reporting.version : 'Not Installed',
