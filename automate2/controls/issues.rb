@@ -240,6 +240,3 @@ the mean time the only way to fix this is to delete the offending index
   tag summary: compliance_logs.summary!
   tag kb: 'https://github.com/chef/automate/pull/1153'
 end
-
-
-is older than minimum supported version
