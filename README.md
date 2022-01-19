@@ -21,7 +21,7 @@ This is designed to be used with the [gatherlogs-reporter](https://github.com/ch
 
 ## License & Authors
 
-* Author: Will Fisher (will@teknofire.com)
+* Author: Will Fisher (will@teknofire.net)
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
