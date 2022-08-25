@@ -5,7 +5,8 @@ class PlatformVersion < Inspec.resource(1)
   PLATFORM_MATCH = {
     centos: 'CentOS',
     rhel: 'Red Hat Enterprise Linux Server',
-    ubuntu: 'Ubuntu'
+    ubuntu: 'Ubuntu',
+    al2: "Amazon Linux"
   }.freeze
 
   PLATFORM_MATCH.keys.each do |k|
